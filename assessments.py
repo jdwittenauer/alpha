@@ -10,8 +10,12 @@ def calc_stockholder_equity(total_assets, total_liabilities):
     return total_assets - total_liabilities
 
 
-def calculate_book_value(stockholder_equity, goodwill, intangible_assets, other_long_term_assets):
+def calc_book_value(stockholder_equity, goodwill, intangible_assets, other_long_term_assets):
     return stockholder_equity - goodwill - intangible_assets - other_long_term_assets
+
+
+def calc_price_to_book_ratio(market_capitalization, book_value):
+    return float(market_capitalization) / float(book_value)
 
 
 def calc_operating_income(revenue, cost_of_goods_sold, operating_expenses):
@@ -75,10 +79,6 @@ def calc_NCAV_ratio(price_per_share, NCAV_per_share):
 
 
 def main():
-    # TODO
-    # Add growth
-    # Add other ratios/metrics
-
     print('Analysis for Apple (2014)...')
 
     # Market
@@ -121,8 +121,11 @@ def main():
     stockholder_equity = calc_stockholder_equity(total_assets, total_liabilities)
     print('Stockholder Equity = ' + str(stockholder_equity))
 
-    book_value = calculate_book_value(stockholder_equity, goodwill, intangible_assets, other_long_term_assets)
+    book_value = calc_book_value(stockholder_equity, goodwill, intangible_assets, other_long_term_assets)
     print('Book Value = ' + str(book_value))
+
+    price_to_book_ratio = calc_price_to_book_ratio(market_capitalization, book_value)
+    print('Price To Book Ratio = ' + str(price_to_book_ratio))
 
     operating_income = calc_operating_income(revenue, cost_of_goods_sold, operating_expenses)
     EBIT = calc_EBIT(operating_income, non_operating_income)
