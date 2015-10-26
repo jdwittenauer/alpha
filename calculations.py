@@ -78,6 +78,10 @@ def calc_NCAV_ratio(price_per_share, NCAV_per_share):
     return float(price_per_share) / float(NCAV_per_share)
 
 
+def calc_earnings_to_bond_yield_ratio():
+    print('TODO')
+
+
 def main():
     print('Analysis for Apple (2014)...')
 
