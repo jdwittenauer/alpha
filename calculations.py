@@ -82,6 +82,10 @@ def calc_earnings_to_bond_yield_ratio():
     print('TODO')
 
 
+def calc_relative_strength():
+    print('TODO')
+
+
 def main():
     print('Analysis for Apple (2014)...')
 
