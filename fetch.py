@@ -1,7 +1,24 @@
 import urllib2
 import Quandl
+import sqlite3
 import pandas as pd
 from zipfile import ZipFile
+
+
+def load_sql_data(connection, table=None, query=None, index=None, date_columns=None):
+    if query is not None:
+        data = pd.read_sql(query, connection, index_col=index, parse_dates=date_columns)
+    else:
+        data = pd.read_sql('SELECT * FROM ' + table, connection, index_col=index, parse_dates=date_columns)
+
+    print('SQL data loaded successfully.')
+
+    return data
+
+
+def save_sql_data(connection, data, table, index=True, index_label=None):
+    data.to_sql(table, connection, if_exists='replace', index=index, index_label=index_label, chunksize=10000)
+    print('SQL data written successfully.')
 
 
 def get_database_codes(directory, dataset, api_key):
@@ -19,6 +36,8 @@ def get_database_codes(directory, dataset, api_key):
 
     # convert to a list
     code_list = codes.iloc[:, 0].tolist()
+
+    print('Code retrieval complete.')
 
     return code_list
 
@@ -41,8 +60,7 @@ def fetch_historical_data(directory, dataset, code_list, api_key):
     columns = [columns[-1]] + columns[:-1]
     data = data[columns]
 
-    # write file to disk
-    data.to_csv(directory + '{0}_data.csv'.format(dataset))
+    print('Historical data loaded successfully.')
 
     return data
 
@@ -51,6 +69,8 @@ def main():
     print('Fetching data...')
 
     directory = 'C:\\Users\\John\\Documents\\Data\\Alpha\\'
+    database_file = 'C:\\Users\\John\\Documents\\Data\\Alpha\\alpha.sqlite'
+    conn = sqlite3.connect(database_file)
 
     # this is a unique key per Quandl account
     api_key = 'SkQK_ZNrZn4cjfXxjJmb'
@@ -61,8 +81,18 @@ def main():
     data_range = Quandl.get('WIKI/AAPL', trim_start='2015-01-01', trim_end='2015-01-01', authtoken=api_key)
     data_multiple = Quandl.get(['WIKI/AAPL', 'WIKI/MSFT'], authtoken=api_key)
 
+    # retrieve the unique list of codes
     code_list = get_database_codes(directory, 'WIKI', api_key)
+
+    # fetch data for the first few codes and save to the database
     historical_data = fetch_historical_data(directory, 'WIKI', code_list[0:3], api_key)
+    save_sql_data(conn, historical_data, 'WIKI')
+
+    # read the data back into a data frame
+    frame = load_sql_data(conn, table='WIKI')
+    frame.head()
+
+    conn.close()
 
     print('Fetch complete.')
 
