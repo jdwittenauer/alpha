@@ -78,11 +78,32 @@ def calc_NCAV_ratio(price_per_share, NCAV_per_share):
     return float(price_per_share) / float(NCAV_per_share)
 
 
+def calc_return_on_invested_capital():
+    # Intelligent Investor, pp. 398
+    print('TODO')
+
+
 def calc_earnings_to_bond_yield_ratio():
     print('TODO')
 
 
+def calc_income_to_book_ratio():
+    print('TODO')
+
+
+def calc_preferred_to_outstanding_shares_ratio():
+    print('TODO')
+
+
+def calc_institutional_ownership_ratio():
+    print('TODO')
+
+
 def calc_relative_strength():
+    print('TODO')
+
+
+def calc_momentum():
     print('TODO')
 
 

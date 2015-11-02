@@ -16,8 +16,8 @@ def load_sql_data(connection, table=None, query=None, index=None, date_columns=N
     return data
 
 
-def save_sql_data(connection, data, table, index=True, index_label=None):
-    data.to_sql(table, connection, if_exists='replace', index=index, index_label=index_label, chunksize=10000)
+def save_sql_data(connection, data, table, exists='append', index=True, index_label=None):
+    data.to_sql(table, connection, if_exists=exists, index=index, index_label=index_label, chunksize=10000)
     print('SQL data written successfully.')
 
 
@@ -32,17 +32,16 @@ def get_database_codes(directory, dataset, api_key):
     # unzip and load the csv into pandas
     z = ZipFile(directory + '{0}_codes.zip'.format(dataset))
     codes = pd.read_csv(z.open('{0}-datasets-codes.csv'.format(dataset)))
-    codes.to_csv(directory + '{0}_codes.csv'.format(dataset))
 
     # convert to a list
     code_list = codes.iloc[:, 0].tolist()
 
     print('Code retrieval complete.')
 
-    return code_list
+    return codes, code_list
 
 
-def fetch_historical_data(directory, dataset, code_list, api_key):
+def fetch_historical_data(dataset, code_list, api_key):
     # fetch the first code's data to create the data frame
     code_offset = len(dataset) + 1
     data = Quandl.get(code_list[0], rows=1, authtoken=api_key)
@@ -65,6 +64,10 @@ def fetch_historical_data(directory, dataset, code_list, api_key):
     return data
 
 
+def fetch_updated_data():
+    print('TODO')
+
+
 def main():
     print('Fetching data...')
 
@@ -82,11 +85,12 @@ def main():
     data_multiple = Quandl.get(['WIKI/AAPL', 'WIKI/MSFT'], authtoken=api_key)
 
     # retrieve the unique list of codes
-    code_list = get_database_codes(directory, 'WIKI', api_key)
+    codes, code_list = get_database_codes(directory, 'WIKI', api_key)
+    save_sql_data(conn, codes, 'WIKI_CODES', exists='replace')
 
-    # fetch data for the first few codes and save to the database
-    historical_data = fetch_historical_data(directory, 'WIKI', code_list[0:3], api_key)
-    save_sql_data(conn, historical_data, 'WIKI')
+    # fetch data for the codes and save to the database
+    historical_data = fetch_historical_data('WIKI', code_list, api_key)
+    save_sql_data(conn, historical_data, 'WIKI', exists='replace')
 
     # read the data back into a data frame
     frame = load_sql_data(conn, table='WIKI')
