@@ -99,6 +99,10 @@ def calc_institutional_ownership_ratio():
     print('TODO')
 
 
+def calc_price_earnings_to_growth_ratio():
+    print('TODO')
+
+
 def calc_relative_strength():
     print('TODO')
 
