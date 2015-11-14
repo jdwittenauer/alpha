@@ -1,6 +1,0 @@
-https://www.quandl.com/data/WIKI
-https://www.quandl.com/data/RAYMOND
-https://www.quandl.com/data/FRED
-https://www.quandl.com/data/FED
-https://www.quandl.com/data/USTREASURY
-https://www.quandl.com/data/DOE
