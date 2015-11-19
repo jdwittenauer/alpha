@@ -7,10 +7,6 @@ from sqlalchemy import sql
 from zipfile import ZipFile
 
 
-# TODO - finish update data function
-# TODO - expand to bring in other data sets on the list
-
-
 def load_sql_data(engine, table=None, query=None, index=None, date_columns=None):
     """
     Retrieves data from a SQL database and loads the data into a data frame.
@@ -211,18 +207,20 @@ def update_dataset_data(engine, dataset, api_key):
         if row['Last Updated'] == datetime(1900, 1, 1):
             # this is a new code so we need to pull all historical data
             code_data = Quandl.get(row['API Code'], authtoken=api_key)
-            code_data['Code'] = row['Code']
-            code_data['Date'] = code_data['Date'].convert_objects(convert_dates='coerce')
-            data = pd.concat([data, code_data])
-
-            # update the code table
-            min_date = min(code_data['Date'])
-            max_date = max(code_data['Date'])
-            current_date = datetime.now()
-            conn.execute(update_code, start=min_date, end=max_date, updated=current_date, code=row['Code'])
         else:
             # incremental update from the current end date for the code
-            print('TODO')
+            code_data = Quandl.get(row['API Code'], trim_start=str(row['End Date']), authtoken=api_key)
+
+        # concat new data to the total set of new records
+        code_data['Code'] = row['Code']
+        code_data['Date'] = code_data['Date'].convert_objects(convert_dates='coerce')
+        data = pd.concat([data, code_data])
+
+        # update the code table
+        min_date = min(code_data['Date'])
+        max_date = max(code_data['Date'])
+        current_date = datetime.now()
+        conn.execute(update_code, start=min_date, end=max_date, updated=current_date, code=row['Code'])
 
     # move the code column to the beginning
     columns = data.columns.tolist()
@@ -235,7 +233,8 @@ def update_dataset_data(engine, dataset, api_key):
 
 
 def main():
-    print('Fetching data...')
+    ex_init_database = False
+    ex_update_database = False
 
     directory = 'C:\\Users\\John\\Documents\\Data\\Alpha\\'
     db_connection = 'sqlite:///C:\\Users\\John\\Documents\\Data\\Alpha\\alpha.sqlite'
@@ -243,16 +242,22 @@ def main():
 
     engine = create_engine(db_connection)
 
-    # initial load
-    create_dataset_table(engine)
-    create_dataset_code_table(engine, directory, 'WIKI', api_key)
-    load_historical_data(engine, 'WIKI', api_key)
+    print('Beginning process...')
 
-    # incremental updates
-    update_dataset_codes(engine, directory, 'WIKI', api_key)
-    update_dataset_data(engine, 'WIKI', api_key)
+    if ex_init_database:
+        create_dataset_table(engine)
+        dataset_table = load_sql_data(engine, 'DATASETS', date_columns=['Last Updated'])
+        for row in dataset_table.iterrows():
+            create_dataset_code_table(engine, directory, row['Dataset'], api_key)
+            load_historical_data(engine, row['Dataset'], api_key)
 
-    print('Fetch complete.')
+    if ex_update_database:
+        dataset_table = load_sql_data(engine, 'DATASETS', date_columns=['Last Updated'])
+        for row in dataset_table.iterrows():
+            update_dataset_codes(engine, directory, row['Dataset'], api_key)
+            update_dataset_data(engine, row['Dataset'], api_key)
+
+    print('Process complete.')
 
 
 if __name__ == "__main__":
