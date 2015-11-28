@@ -2,8 +2,8 @@ def calc_price_earnings_ratio(price_per_share, earnings_per_share):
     return float(price_per_share) / float(earnings_per_share)
 
 
-def calc_market_capitalization(price_per_share, shares_outstanding):
-    return price_per_share * shares_outstanding
+def calc_market_capitalization(price_per_share, total_shares_outstanding):
+    return price_per_share * total_shares_outstanding
 
 
 def calc_stockholder_equity(total_assets, total_liabilities):
@@ -30,12 +30,16 @@ def calc_debt(short_term_debt, long_term_debt):
     return short_term_debt + long_term_debt
 
 
+def calc_preferred_value(total_shares_outstanding, basic_shares_outstanding, price_per_share):
+    return (total_shares_outstanding - basic_shares_outstanding) * price_per_share
+
+
 def calc_excess_cash(total_cash, current_liabilities, current_assets):
     return total_cash - max(current_liabilities - current_assets, 0)
 
 
-def calc_enterprise_value(market_capitalization, debt, excess_cash):
-    return max(market_capitalization + debt - excess_cash, 1)
+def calc_enterprise_value(market_capitalization, debt, preferred_shares_value, excess_cash):
+    return max(market_capitalization + debt + preferred_shares_value - excess_cash, 1)
 
 
 def calc_earnings_yield(EBIT, depreciation, capital_expenditures, enterprise_value):
@@ -66,12 +70,12 @@ def calc_free_cash_flow(operating_cash_flow, capital_expenditures, depreciation)
     return operating_cash_flow - min(capital_expenditures, depreciation)
 
 
-def calc_free_cash_flow_yield(free_cash_flow, shares_outstanding, price_per_share):
-    return (float(free_cash_flow) / float(shares_outstanding)) / price_per_share
+def calc_free_cash_flow_yield(free_cash_flow, total_shares_outstanding, price_per_share):
+    return (float(free_cash_flow) / float(total_shares_outstanding)) / price_per_share
 
 
-def calc_NCAV_per_share(current_assets, total_liabilities, shares_outstanding):
-    return float(max(current_assets - total_liabilities, 1)) / float(shares_outstanding)
+def calc_NCAV_per_share(current_assets, total_liabilities, total_shares_outstanding):
+    return float(max(current_assets - total_liabilities, 1)) / float(total_shares_outstanding)
 
 
 def calc_NCAV_ratio(price_per_share, NCAV_per_share):
@@ -88,10 +92,6 @@ def calc_earnings_to_bond_yield_ratio():
 
 
 def calc_income_to_book_ratio():
-    print('TODO')
-
-
-def calc_preferred_to_outstanding_shares_ratio():
     print('TODO')
 
 
@@ -124,7 +124,8 @@ def main():
     non_operating_income = 1364
     net_income = 39510
     earnings_per_share = 6.45
-    shares_outstanding = 6123
+    basic_shares_outstanding = 6086
+    total_shares_outstanding = 6123
 
     # Balance Sheet
     total_cash = 25077
@@ -148,7 +149,7 @@ def main():
     price_earnings_ratio = calc_price_earnings_ratio(price_per_share, earnings_per_share)
     print('Price/Earnings Ratio = ' + str(price_earnings_ratio))
 
-    market_capitalization = calc_market_capitalization(price_per_share, shares_outstanding)
+    market_capitalization = calc_market_capitalization(price_per_share, total_shares_outstanding)
     print('Market Capitalization = ' + str(market_capitalization))
 
     stockholder_equity = calc_stockholder_equity(total_assets, total_liabilities)
@@ -165,8 +166,9 @@ def main():
     print('EBIT = ' + str(EBIT))
 
     debt = calc_debt(short_term_debt, long_term_debt)
+    preferred_value = calc_preferred_value(total_shares_outstanding, basic_shares_outstanding, price_per_share)
     excess_cash = calc_excess_cash(total_cash, current_liabilities, current_assets)
-    enterprise_value = calc_enterprise_value(market_capitalization, debt, excess_cash)
+    enterprise_value = calc_enterprise_value(market_capitalization, debt, preferred_value, excess_cash)
     print('Enterprise Value = ' + str(enterprise_value))
 
     earnings_yield = calc_earnings_yield(EBIT, depreciation, capital_expenditures, enterprise_value)
@@ -190,10 +192,10 @@ def main():
     free_cash_flow = calc_free_cash_flow(operating_cash_flow, capital_expenditures, depreciation)
     print('Free Cash Flow = ' + str(free_cash_flow))
 
-    free_cash_flow_yield = calc_free_cash_flow_yield(free_cash_flow, shares_outstanding, price_per_share)
+    free_cash_flow_yield = calc_free_cash_flow_yield(free_cash_flow, total_shares_outstanding, price_per_share)
     print('Free Cash Flow Yield = ' + str(free_cash_flow_yield))
 
-    NCAV_per_share = calc_NCAV_per_share(current_assets, total_liabilities, shares_outstanding)
+    NCAV_per_share = calc_NCAV_per_share(current_assets, total_liabilities, total_shares_outstanding)
     print('NCAV Per Share = ' + str(NCAV_per_share))
 
     NCAV_ratio = calc_NCAV_ratio(price_per_share, NCAV_per_share)
