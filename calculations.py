@@ -1,5 +1,13 @@
+def calc_annual_growth_rate(starting_value, final_value, n_years):
+    return (((float(final_value) / float(starting_value)) ** (1 / n_years)) - 1) * 100
+
+
 def calc_price_earnings_ratio(price_per_share, earnings_per_share):
     return float(price_per_share) / float(earnings_per_share)
+
+
+def calc_price_earnings_to_growth_ratio(price_earnings_ratio, annual_growth_rate):
+    return float(price_earnings_ratio) / float(annual_growth_rate) * 100
 
 
 def calc_market_capitalization(price_per_share, total_shares_outstanding):
@@ -74,6 +82,10 @@ def calc_free_cash_flow_yield(free_cash_flow, total_shares_outstanding, price_pe
     return (float(free_cash_flow) / float(total_shares_outstanding)) / price_per_share
 
 
+def calc_dividend_yield(dividends_paid, total_shares_outstanding, price_per_share):
+    return (float(dividends_paid) / float(total_shares_outstanding)) / price_per_share
+
+
 def calc_NCAV_per_share(current_assets, total_liabilities, total_shares_outstanding):
     return float(max(current_assets - total_liabilities, 1)) / float(total_shares_outstanding)
 
@@ -82,40 +94,44 @@ def calc_NCAV_ratio(price_per_share, NCAV_per_share):
     return float(price_per_share) / float(NCAV_per_share)
 
 
+def calc_earnings_to_bond_yield_ratio(ten_year_treasury_yield, earnings_yield):
+    return float(ten_year_treasury_yield) / float(earnings_yield)
+
+
+def calc_non_cash_charges(deferred_income_taxes, stock_based_compensation):
+    return deferred_income_taxes + stock_based_compensation
+
+
+def calc_current_assets_change():
+    return 0
+
+
+def calc_current_liabilities_change():
+    return 0
+
+
+def calc_working_capital_change():
+    return 0
+
+
+def calc_owner_earnings(net_income, depreciation, non_cash_charges, capital_expenditures, working_capital_change):
+    return net_income + depreciation + non_cash_charges - capital_expenditures + working_capital_change
+
+
 def calc_return_on_invested_capital():
-    # Intelligent Investor, pp. 398
-    print('TODO')
-
-
-def calc_earnings_to_bond_yield_ratio():
-    print('TODO')
-
-
-def calc_income_to_book_ratio():
-    print('TODO')
-
-
-def calc_institutional_ownership_ratio():
-    print('TODO')
-
-
-def calc_price_earnings_to_growth_ratio():
-    print('TODO')
-
-
-def calc_relative_strength():
-    print('TODO')
-
-
-def calc_momentum():
-    print('TODO')
+    return 0
 
 
 def main():
     print('Analysis for Apple (2014)...')
 
     # Market
+    beginning_earnings = 25922
+    ending_earnings = 39510
+    n_years = 3
     price_per_share = 110.78
+    ten_year_treasury_yield = 2.22
+    institutional_ownership_ratio = 0.59
 
     # Income Statement
     revenue = 182795
@@ -143,11 +159,20 @@ def main():
 
     # Cash Flow
     depreciation = 7946
+    deferred_income_taxes = 2347
+    stock_based_compensation = 2863
+    dividends_paid = 11126
     operating_cash_flow = 59713
     capital_expenditures = 9813
 
     price_earnings_ratio = calc_price_earnings_ratio(price_per_share, earnings_per_share)
     print('Price/Earnings Ratio = ' + str(price_earnings_ratio))
+
+    annual_growth_rate = calc_annual_growth_rate(beginning_earnings, ending_earnings, n_years)
+    print('Annual Growth Rate = ' + str(annual_growth_rate))
+
+    price_earnings_to_growth_ratio = calc_price_earnings_to_growth_ratio(price_earnings_ratio, annual_growth_rate)
+    print('Price/Earnings To Growth Ratio = ' + str(price_earnings_to_growth_ratio))
 
     market_capitalization = calc_market_capitalization(price_per_share, total_shares_outstanding)
     print('Market Capitalization = ' + str(market_capitalization))
@@ -195,11 +220,25 @@ def main():
     free_cash_flow_yield = calc_free_cash_flow_yield(free_cash_flow, total_shares_outstanding, price_per_share)
     print('Free Cash Flow Yield = ' + str(free_cash_flow_yield))
 
+    dividend_yield = calc_dividend_yield(dividends_paid, total_shares_outstanding, price_per_share)
+    print('Dividend Yield = ' + str(dividend_yield))
+
     NCAV_per_share = calc_NCAV_per_share(current_assets, total_liabilities, total_shares_outstanding)
     print('NCAV Per Share = ' + str(NCAV_per_share))
 
     NCAV_ratio = calc_NCAV_ratio(price_per_share, NCAV_per_share)
     print('NCAV Ratio = ' + str(NCAV_ratio))
+
+    earnings_to_bond_yield_ratio = calc_earnings_to_bond_yield_ratio(ten_year_treasury_yield, earnings_yield)
+    print('Earnings To Bond Yield Ratio = ' + str(earnings_to_bond_yield_ratio))
+
+    print('Institutional Ownership Ratio = ' + str(institutional_ownership_ratio))
+
+    non_cash_charges = calc_non_cash_charges(deferred_income_taxes, stock_based_compensation)
+    working_capital_change = calc_working_capital_change()
+    owner_earnings = calc_owner_earnings(net_income, depreciation, non_cash_charges,
+                                         capital_expenditures, working_capital_change)
+    print('Owner Earnings = ' + str(owner_earnings))
 
     print('Analysis complete.')
 
