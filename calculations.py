@@ -90,7 +90,7 @@ def calc_dividend_yield(dividends_paid, total_shares_outstanding, price_per_shar
     return (float(dividends_paid) / float(total_shares_outstanding)) / price_per_share
 
 
-def calc_price_earnings_ratio(price_per_share, earnings_per_share):
+def calc_price_to_earnings_ratio(price_per_share, earnings_per_share):
     return float(price_per_share) / float(earnings_per_share)
 
 
@@ -102,8 +102,52 @@ def calc_price_earnings_to_growth_ratio(price_earnings_ratio, annual_growth_rate
     return float(price_earnings_ratio) / (float(annual_growth_rate) * 100)
 
 
+def calc_price_to_free_cash_flow_ratio(market_capitalization, free_cash_flow):
+    return float(market_capitalization) / float(free_cash_flow)
+
+
 def calc_price_to_book_ratio(market_capitalization, book_value):
     return float(market_capitalization) / float(book_value)
+
+
+def calc_current_ratio(current_assets, current_liabilities):
+    return float(current_assets) / float(current_liabilities)
+
+
+def calc_quick_ratio(current_assets, inventories, current_liabilities):
+    return float(current_assets - inventories) / float(current_liabilities)
+
+
+def calc_debt_ratio(debt, total_assets):
+    return float(debt) / float(total_assets)
+
+
+def calc_debt_to_equity_ratio(total_liabilities, stockholder_equity):
+    return float(total_liabilities) / float(stockholder_equity)
+
+
+def calc_current_liability_coverage_ratio(operating_cash_flow, dividends_paid, current_liabilities):
+    return float(operating_cash_flow - dividends_paid) / float(current_liabilities)
+
+
+def calc_operating_cash_flow_ratio(operating_cash_flow, revenue):
+    return float(operating_cash_flow) / float(revenue)
+
+
+def calc_cash_investing_inflows(sales_of_investments, other_investing_activities):
+    return sales_of_investments + other_investing_activities
+
+
+def calc_cash_financing_inflows(debt_issued, common_stock_issued):
+    return debt_issued + common_stock_issued
+
+
+def calc_cash_generating_power_ratio(operating_cash_flow, cash_investing_inflows, cash_financing_inflows):
+    return float(operating_cash_flow) / float(operating_cash_flow + cash_investing_inflows + cash_financing_inflows)
+
+
+def calc_gross_profitability_ratio(revenue, cost_of_goods_sold, total_assets):
+    return float(revenue - cost_of_goods_sold) / float(total_assets)
 
 
 def calc_NCAV_per_share(current_assets, total_liabilities, total_shares_outstanding):
@@ -168,6 +212,10 @@ def main():
 
     # Cash Flow
     depreciation = 7946
+    sales_of_investments = 208111
+    other_investing_activities = 16
+    debt_issued = 18266
+    common_stock_issued = 730
     stock_repurchased = 35253
     dividends_paid = 11126
     operating_cash_flow = 59713
@@ -242,7 +290,7 @@ def main():
     dividend_yield = calc_dividend_yield(dividends_paid, total_shares_outstanding, price_per_share)
     print('Dividend Yield = ' + str(dividend_yield))
 
-    price_earnings_ratio = calc_price_earnings_ratio(price_per_share, earnings_per_share)
+    price_earnings_ratio = calc_price_to_earnings_ratio(price_per_share, earnings_per_share)
     print('Price/Earnings Ratio = ' + str(price_earnings_ratio))
 
     annual_growth_rate = calc_annual_growth_rate(beginning_net_income, ending_net_income, n_years)
@@ -251,8 +299,37 @@ def main():
     price_earnings_to_growth_ratio = calc_price_earnings_to_growth_ratio(price_earnings_ratio, annual_growth_rate)
     print('Price/Earnings To Growth Ratio = ' + str(price_earnings_to_growth_ratio))
 
+    price_to_free_cash_flow_ratio = calc_price_to_free_cash_flow_ratio(market_capitalization, free_cash_flow)
+    print('Price To Free Cash Flow Ratio = ' + str(price_to_free_cash_flow_ratio))
+
     price_to_book_ratio = calc_price_to_book_ratio(market_capitalization, book_value)
     print('Price To Book Ratio = ' + str(price_to_book_ratio))
+
+    current_ratio = calc_current_ratio(current_assets, current_liabilities)
+    print('Current Ratio = ' + str(current_ratio))
+
+    quick_ratio = calc_quick_ratio(current_assets, inventories, current_liabilities)
+    print('Quick Ratio = ' + str(quick_ratio))
+
+    debt_ratio = calc_debt_ratio(debt, total_assets)
+    print('Debt Ratio = ' + str(debt_ratio))
+
+    debt_to_equity_ratio = calc_debt_to_equity_ratio(total_liabilities, stockholder_equity)
+    print('Debt To Equity Ratio = ' + str(debt_to_equity_ratio))
+
+    current_liability_coverage_ratio = calc_current_liability_coverage_ratio(operating_cash_flow, dividends_paid, current_liabilities)
+    print('Current Liability Coverage Ratio = ' + str(current_liability_coverage_ratio))
+
+    operating_cash_flow_ratio = calc_operating_cash_flow_ratio(operating_cash_flow, revenue)
+    print('Operating Cash Flow Ratio = ' + str(operating_cash_flow_ratio))
+
+    cash_investing_inflows = calc_cash_investing_inflows(sales_of_investments, other_investing_activities)
+    cash_financing_inflows = calc_cash_financing_inflows(debt_issued, common_stock_issued)
+    cash_generating_power_ratio = calc_cash_generating_power_ratio(operating_cash_flow, cash_investing_inflows, cash_financing_inflows)
+    print('Cash Generating Power Ratio = ' + str(cash_generating_power_ratio))
+
+    gross_profitability_ratio = calc_gross_profitability_ratio(revenue, cost_of_goods_sold, total_assets)
+    print('Gross Profitability Ratio = ' + str(gross_profitability_ratio))
 
     NCAV_per_share = calc_NCAV_per_share(current_assets, total_liabilities, total_shares_outstanding)
     NCAV_ratio = calc_NCAV_ratio(price_per_share, NCAV_per_share)
@@ -260,8 +337,6 @@ def main():
 
     bond_equity_earnings_yield_ratio = calc_bond_equity_earnings_yield_ratio(ten_year_treasury_yield, earnings_yield)
     print('Bond Equity Earnings Yield Ratio = ' + str(bond_equity_earnings_yield_ratio))
-
-    print('Institutional Ownership Ratio = ' + str(institutional_ownership_ratio))
 
     print('Analysis complete.')
 
