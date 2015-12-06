@@ -1,169 +1,314 @@
 def calc_market_capitalization(price_per_share, total_shares_outstanding):
+    """
+    Market capitalization is the total market value of all of the shares outstanding.  It is based on
+    the current stock price.  Total shares should be the diluted amount (includes preferred shares).
+    """
     return price_per_share * total_shares_outstanding
 
 
 def calc_stockholder_equity(total_assets, total_liabilities):
+    """
+    Stockholder's equity is the capital received from investors in exchange for stock (paid-in capital),
+    donated capital and retained earnings.  Stockholders' equity represents the equity stake currently held
+    on the books by a firm's equity investors.
+    """
     return total_assets - total_liabilities
 
 
 def calc_book_value(stockholder_equity, goodwill, intangible_assets, other_long_term_assets):
+    """
+    Book value is the net asset value of a company, calculated by total assets minus intangible assets
+    (patents, goodwill) and liabilities.
+    """
     return stockholder_equity - goodwill - intangible_assets - other_long_term_assets
 
 
 def calc_operating_income(revenue, cost_of_goods_sold, operating_expenses):
+    """
+    Operating income is the amount of profit realized from a business's operations after taking out
+    cost of goods sold and operating expenses.
+    """
     return revenue - cost_of_goods_sold - operating_expenses
 
 
 def calc_EBIT(operating_income, non_operating_income):
+    """
+    Earnings before interest and taxes (EBIT) is a measure of earnings that includes depreciation but
+    excludes other variable deductions.
+    """
     return operating_income + non_operating_income
 
 
 def calc_earnings(EBIT, depreciation, capital_expenditures):
+    """
+    Earnings as calculated here is based on EBIT but also deducts capital expenditures above and beyond
+    the depreciation cost.
+
+    This calculation is part of Greenblat's magic formula.
+    """
     return EBIT + (depreciation - capital_expenditures)
 
 
 def calc_debt(short_term_debt, long_term_debt):
+    """
+    Debt is a measure of the amount of money a company has borrowed.
+    """
     return short_term_debt + long_term_debt
 
 
 def calc_preferred_value(total_shares_outstanding, basic_shares_outstanding, price_per_share):
+    """
+    Preferred value is the total dollar value of all of a company's outstanding preferred shares if they
+    were exercised at once.  It is based on the current stock price.
+    """
     return (total_shares_outstanding - basic_shares_outstanding) * price_per_share
 
 
 def calc_excess_cash(total_cash, current_liabilities, current_assets):
+    """
+    Excess cash is a measure of the company's cash on hand that exceeds the delta between a company's current
+    assets and current liabilities.
+
+    This calculation is part of Greenblat's magic formula.
+    """
     return total_cash - max(current_liabilities - current_assets, 0)
 
 
 def calc_enterprise_value(market_capitalization, debt, preferred_shares_value, excess_cash):
+    """
+    Enterprise value calculates and adjusted market capitalization for a company that penalizes outstanding
+    debt and preferred shares but provides a bonus for excess cash on hand.
+
+    This calculation is part of Greenblat's magic formula.
+    """
     return max(market_capitalization + debt + preferred_shares_value - excess_cash, 1)
 
 
 def calc_earnings_yield(earnings, enterprise_value):
+    """
+    Earnings yield is a percentage representing real earnings relative to the value of the company.  It
+    approximates the amount earned per dollar invested in the company.
+
+    This calculation is part of Greenblat's magic formula.
+    """
     return float(earnings) / float(enterprise_value)
 
 
 def calc_net_fixed_assets(total_assets, current_assets, goodwill, intangible_assets, other_long_term_assets):
+    """
+    Net fixed assets is the value of all tangible assets (land, buildings, equipment etc.) less
+    accumulated depreciation.
+
+    This calculation is part of Greenblat's magic formula.
+    """
     return total_assets - current_assets - goodwill - intangible_assets - other_long_term_assets
 
 
 def calc_working_capital(current_assets, current_liabilities, short_term_debt, excess_cash):
+    """
+    Working capital as calculated here is the difference between a company's current assets and current
+    liabilities, excluding short-term debt, and after removing excess cash.
+
+    This calculation is part of Greenblat's magic formula.
+    """
     return max(current_assets - (current_liabilities - short_term_debt) - excess_cash, 0)
 
 
 def calc_invested_capital(stockholder_equity, debt):
+    """
+    Invested capital is calculated as total assets less total liabilites excluding debt.
+    """
     return stockholder_equity + debt
 
 
 def calc_return_on_equity(net_income, stockholder_equity):
+    """
+    Return on equity is the ratio of net income generated per dollar of stockholder equity.
+    """
     return float(net_income) / float(stockholder_equity)
 
 
 def calc_return_on_assets(net_income, total_assets):
+    """
+    Return on assets is the ratio of net income generated per dollar of total assets.
+    """
     return float(net_income) / float(total_assets)
 
 
 def calc_return_on_capital(earnings, net_fixed_assets, working_capital):
+    """
+    Return on capital is the ratio of earnings relative to a company's invested capital.  It's a measure
+    of efficiency at allocating capital toward profitable investment.
+    """
     return float(earnings) / float(net_fixed_assets + working_capital)
 
 
 def calc_return_on_invested_capital(earnings, invested_capital):
+    """
+
+    """
     return float(earnings) / float(invested_capital)
 
 
 def calc_free_cash_flow(operating_cash_flow, capital_expenditures, depreciation):
+    """
+
+    """
     return operating_cash_flow - min(capital_expenditures, depreciation)
 
 
 def calc_free_cash_flow_yield(free_cash_flow, enterprise_value):
+    """
+
+    """
     return float(free_cash_flow) / float(enterprise_value)
 
 
 def calc_cash_return_on_capital(free_cash_flow, net_fixed_assets, working_capital):
+    """
+
+    """
     return float(free_cash_flow) / float(net_fixed_assets + working_capital)
 
 
 def calc_cash_return_on_invested_capital(free_cash_flow, invested_capital):
+    """
+
+    """
     return float(free_cash_flow) / float(invested_capital)
 
 
 def calc_dividend_yield(dividends_paid, total_shares_outstanding, price_per_share):
+    """
+
+    """
     return (float(dividends_paid) / float(total_shares_outstanding)) / price_per_share
 
 
 def calc_price_to_earnings_ratio(price_per_share, earnings_per_share):
+    """
+
+    """
     return float(price_per_share) / float(earnings_per_share)
 
 
 def calc_annual_growth_rate(starting_value, final_value, n_years):
+    """
+
+    """
     return ((float(final_value) / float(starting_value)) ** (float(1) / n_years)) - 1
 
 
 def calc_price_earnings_to_growth_ratio(price_earnings_ratio, annual_growth_rate):
+    """
+
+    """
     return float(price_earnings_ratio) / (float(annual_growth_rate) * 100)
 
 
 def calc_price_to_free_cash_flow_ratio(market_capitalization, free_cash_flow):
+    """
+
+    """
     return float(market_capitalization) / float(free_cash_flow)
 
 
 def calc_price_to_book_ratio(market_capitalization, book_value):
+    """
+
+    """
     return float(market_capitalization) / float(book_value)
 
 
 def calc_current_ratio(current_assets, current_liabilities):
+    """
+
+    """
     return float(current_assets) / float(current_liabilities)
 
 
 def calc_quick_ratio(current_assets, inventories, current_liabilities):
+    """
+
+    """
     return float(current_assets - inventories) / float(current_liabilities)
 
 
 def calc_debt_ratio(debt, total_assets):
+    """
+
+    """
     return float(debt) / float(total_assets)
 
 
 def calc_debt_to_equity_ratio(total_liabilities, stockholder_equity):
+    """
+
+    """
     return float(total_liabilities) / float(stockholder_equity)
 
 
 def calc_current_liability_coverage_ratio(operating_cash_flow, dividends_paid, current_liabilities):
+    """
+
+    """
     return float(operating_cash_flow - dividends_paid) / float(current_liabilities)
 
 
 def calc_operating_cash_flow_ratio(operating_cash_flow, revenue):
+    """
+
+    """
     return float(operating_cash_flow) / float(revenue)
 
 
 def calc_cash_investing_inflows(sales_of_investments, other_investing_activities):
+    """
+
+    """
     return sales_of_investments + other_investing_activities
 
 
 def calc_cash_financing_inflows(debt_issued, common_stock_issued):
+    """
+
+    """
     return debt_issued + common_stock_issued
 
 
 def calc_cash_generating_power_ratio(operating_cash_flow, cash_investing_inflows, cash_financing_inflows):
+    """
+
+    """
     return float(operating_cash_flow) / float(operating_cash_flow + cash_investing_inflows + cash_financing_inflows)
 
 
 def calc_gross_profitability_ratio(revenue, cost_of_goods_sold, total_assets):
+    """
+
+    """
     return float(revenue - cost_of_goods_sold) / float(total_assets)
 
 
 def calc_NCAV_per_share(current_assets, total_liabilities, total_shares_outstanding):
+    """
+
+    """
     return float(max(current_assets - total_liabilities, 1)) / float(total_shares_outstanding)
 
 
 def calc_NCAV_ratio(price_per_share, NCAV_per_share):
+    """
+
+    """
     return float(price_per_share) / float(NCAV_per_share)
 
 
 def calc_bond_equity_earnings_yield_ratio(ten_year_treasury_yield, earnings_yield):
+    """
+
+    """
     return float(ten_year_treasury_yield) / float(earnings_yield)
-
-
-def calc_owner_earnings():
-    print('TODO')
 
 
 def main():
