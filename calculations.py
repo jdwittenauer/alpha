@@ -145,168 +145,171 @@ def calc_return_on_capital(earnings, net_fixed_assets, working_capital):
 
 def calc_return_on_invested_capital(earnings, invested_capital):
     """
-
+    Return on invested capital is an alternate definition of return on capital that uses as the
+    denominator the calculation of invested capital above.
     """
     return float(earnings) / float(invested_capital)
 
 
 def calc_free_cash_flow(operating_cash_flow, capital_expenditures, depreciation):
     """
-
+    Free cash flow (FCF) represents the cash that a company is able to generate after laying out the money
+    required to maintain or expand its asset base. Free cash flow is important because it allows a company
+    to pursue opportunities that enhance shareholder value. Without cash, it's tough to develop new products,
+    make acquisitions, pay dividends and reduce debt.
     """
     return operating_cash_flow - min(capital_expenditures, depreciation)
 
 
 def calc_free_cash_flow_yield(free_cash_flow, enterprise_value):
     """
-
+    Free cash flow yield is a percentage representing real cash flow relative to the value of the company.
+    It is similar to earnings yield but uses actual cash flow instead of reported earnings.
     """
     return float(free_cash_flow) / float(enterprise_value)
 
 
 def calc_cash_return_on_capital(free_cash_flow, net_fixed_assets, working_capital):
     """
-
+    Cash return on capital is the ratio of free cash flow relative to a company's invested capital.  It is
+    similar to return on capital but uses actual cash flow instead of reported earnings.
     """
     return float(free_cash_flow) / float(net_fixed_assets + working_capital)
 
 
 def calc_cash_return_on_invested_capital(free_cash_flow, invested_capital):
     """
-
+    Cash return on invested capital is an alternate definition of cash return on capital that uses as the
+    denominator the calculation of invested capital above.  It is similar to return on invested capital but
+    uses actual cash flow instead of reported earnings.
     """
     return float(free_cash_flow) / float(invested_capital)
 
 
 def calc_dividend_yield(dividends_paid, total_shares_outstanding, price_per_share):
     """
-
+    Dividend yield indicates how much a company pays out in dividends each year relative to its share price.
     """
     return (float(dividends_paid) / float(total_shares_outstanding)) / price_per_share
 
 
 def calc_price_to_earnings_ratio(price_per_share, earnings_per_share):
     """
-
+    The price/earnings (P/E) ratio measures the current share price relative to per-share earnings.
     """
     return float(price_per_share) / float(earnings_per_share)
 
 
 def calc_annual_growth_rate(starting_value, final_value, n_years):
     """
-
+    Calculates the annual compound growth rate required to reach the final value from the starting
+    value over a period of n years.
     """
     return ((float(final_value) / float(starting_value)) ** (float(1) / n_years)) - 1
 
 
 def calc_price_earnings_to_growth_ratio(price_earnings_ratio, annual_growth_rate):
     """
-
+    The price/earnings to growth (PEG) ratio measures the price/earnings ratio relative to the annual
+    earnings growth rate of the company.  The PEG ratio is used to determine a stock's value while
+    taking the company's earnings growth into account.  However, it does not distinguish between more
+    desirable types of growth (such as sales or margin growth) vs. less desirable types of growth
+    (such as growth from acquisitions or share buybacks).
     """
     return float(price_earnings_ratio) / (float(annual_growth_rate) * 100)
 
 
 def calc_price_to_free_cash_flow_ratio(market_capitalization, free_cash_flow):
     """
-
+    The price/free cash flow ratio measures the current share price relative to real cash flow.  It is
+    similar to the price/earnings ratio but uses actual cash flow instead of reported earnings.
     """
     return float(market_capitalization) / float(free_cash_flow)
 
 
 def calc_price_to_book_ratio(market_capitalization, book_value):
     """
-
+    The price to book (P/B) ratio is a ratio used to compare a stock's market value to its book value.
     """
     return float(market_capitalization) / float(book_value)
 
 
 def calc_current_ratio(current_assets, current_liabilities):
     """
-
+    The current ratio is a liquidity ratio that measures a company's ability to pay short-term and
+    long-term obligations. To gauge this ability, the current ratio considers the total assets of a
+    company (both liquid and illiquid) relative to that company's total liabilities.
     """
     return float(current_assets) / float(current_liabilities)
 
 
 def calc_quick_ratio(current_assets, inventories, current_liabilities):
     """
-
+    The quick ratio is an indicator of a company's short-term liquidity. The quick ratio measures a
+    company's ability to meet its short-term obligations with its most liquid assets.
     """
     return float(current_assets - inventories) / float(current_liabilities)
 
 
 def calc_debt_ratio(debt, total_assets):
     """
-
+    The debt ratio measures the extent of a company's or consumer's leverage. The debt ratio is defined
+    as the ratio of total debt to total assets.
     """
     return float(debt) / float(total_assets)
 
 
 def calc_debt_to_equity_ratio(total_liabilities, stockholder_equity):
     """
-
+    The debt to equity ratio is a debt ratio used to measure a company's financial leverage,
+    calculated by dividing a company's total liabilities by its stockholders' equity.
     """
     return float(total_liabilities) / float(stockholder_equity)
 
 
 def calc_current_liability_coverage_ratio(operating_cash_flow, dividends_paid, current_liabilities):
     """
-
+    The current liability coverage ratio measures a company's ability to pay its debts based on cash
+    generated from operations.
     """
     return float(operating_cash_flow - dividends_paid) / float(current_liabilities)
 
 
 def calc_operating_cash_flow_ratio(operating_cash_flow, revenue):
     """
-
+    The operating cash flow ratio measures a company's ability to turn revenue from sales into cash.
     """
     return float(operating_cash_flow) / float(revenue)
 
 
 def calc_cash_investing_inflows(sales_of_investments, other_investing_activities):
     """
-
+    Cash investing inflows are positive cash flows from the investment section of the cash flow statement.
     """
     return sales_of_investments + other_investing_activities
 
 
 def calc_cash_financing_inflows(debt_issued, common_stock_issued):
     """
-
+    Cash financing inflows are positive cash flows from the financing section of the cash flow statement.
     """
     return debt_issued + common_stock_issued
 
 
 def calc_cash_generating_power_ratio(operating_cash_flow, cash_investing_inflows, cash_financing_inflows):
     """
-
+    The cash generating power ratio measures the proportion of a company's positive cash flow that comes
+    from operating the business vs. cash from investments or financing activities.
     """
     return float(operating_cash_flow) / float(operating_cash_flow + cash_investing_inflows + cash_financing_inflows)
 
 
-def calc_gross_profitability_ratio(revenue, cost_of_goods_sold, total_assets):
-    """
-
-    """
-    return float(revenue - cost_of_goods_sold) / float(total_assets)
-
-
-def calc_NCAV_per_share(current_assets, total_liabilities, total_shares_outstanding):
-    """
-
-    """
-    return float(max(current_assets - total_liabilities, 1)) / float(total_shares_outstanding)
-
-
-def calc_NCAV_ratio(price_per_share, NCAV_per_share):
-    """
-
-    """
-    return float(price_per_share) / float(NCAV_per_share)
-
-
 def calc_bond_equity_earnings_yield_ratio(ten_year_treasury_yield, earnings_yield):
     """
-
+    The bond equity earnings yield (BEER) ratio measures the earnings yield of a business relative to current
+    returns from a ten-year treasury note.  A BEER of 1 would indicate equal levels of perceived risk between
+    the bond market and the equity. BEER ratios greater than 1 imply that the equity may be overvalued, while
+    numbers less than 1 mean it may be undervalued.
     """
     return float(ten_year_treasury_yield) / float(earnings_yield)
 
@@ -472,13 +475,6 @@ def main():
     cash_financing_inflows = calc_cash_financing_inflows(debt_issued, common_stock_issued)
     cash_generating_power_ratio = calc_cash_generating_power_ratio(operating_cash_flow, cash_investing_inflows, cash_financing_inflows)
     print('Cash Generating Power Ratio = ' + str(cash_generating_power_ratio))
-
-    gross_profitability_ratio = calc_gross_profitability_ratio(revenue, cost_of_goods_sold, total_assets)
-    print('Gross Profitability Ratio = ' + str(gross_profitability_ratio))
-
-    NCAV_per_share = calc_NCAV_per_share(current_assets, total_liabilities, total_shares_outstanding)
-    NCAV_ratio = calc_NCAV_ratio(price_per_share, NCAV_per_share)
-    print('Net Current Asset Value Ratio = ' + str(NCAV_ratio))
 
     bond_equity_earnings_yield_ratio = calc_bond_equity_earnings_yield_ratio(ten_year_treasury_yield, earnings_yield)
     print('Bond Equity Earnings Yield Ratio = ' + str(bond_equity_earnings_yield_ratio))
