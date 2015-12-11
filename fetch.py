@@ -1,3 +1,4 @@
+import time
 import urllib2
 import Quandl
 import pandas as pd
@@ -91,7 +92,7 @@ def create_dataset_code_table(engine, directory, dataset, api_key):
 
     # strip off the data set name
     code_offset = len(dataset) + 1
-    code_list_stripped = code_list.map(lambda x: x[code_offset:])
+    code_list_stripped = map(lambda x: x[code_offset:], code_list)
 
     # create a new frame with the dataset, codes, and placeholder columns for metadata
     code_table = pd.DataFrame(code_list_stripped, columns=['Code'])
@@ -124,22 +125,29 @@ def load_historical_data(engine, dataset, api_key):
 
     # fetch the first code's data to create the data frame
     data = Quandl.get(code_table['API Code'].iloc[0], rows=1, authtoken=api_key)
+    data = data.reset_index()
     data['Code'] = code_table['Code'].iloc[0]
-    data['Date'] = data['Date'].convert_objects(convert_dates='coerce')
     data = data.iloc[0:0]
 
     # iterate over each code and append the returned data
-    for row in code_table.iterrows():
+    counter = 0
+    for index, row in code_table.iterrows():
+        print('Loading historical data for {0}...'.format(row['API Code']))
         code_data = Quandl.get(row['API Code'], authtoken=api_key)
+        code_data = code_data.reset_index()
         code_data['Code'] = row['Code']
-        code_data['Date'] = code_data['Date'].convert_objects(convert_dates='coerce')
         data = pd.concat([data, code_data])
 
         # update the code table
-        min_date = min(code_data['Date'])
-        max_date = max(code_data['Date'])
+        min_date = code_data['Date'].min().to_datetime()
+        max_date = code_data['Date'].max().to_datetime()
         current_date = datetime.now()
         conn.execute(update_code, start=min_date, end=max_date, updated=current_date, code=row['Code'])
+
+        counter += 1
+        if counter % 100 == 0:
+            print('Sleeping for one minute to avoid hitting API call limits...')
+            time.sleep(60)
 
     # move the code column to the beginning
     columns = data.columns.tolist()
@@ -171,11 +179,14 @@ def update_dataset_codes(engine, directory, dataset, api_key):
     for api_code in code_list:
         code = api_code[code_offset:]
         result = conn.execute(select_code, code=code)
+        row = result.fetchone()
 
         # if there was no result then the code is new and must be inserted
-        if len(result) == 0:
+        if row is None:
             init_date = datetime(1900, 1, 1)
             conn.execute(insert_code, code=code, api_code=api_code, start=init_date, end=init_date, updated=init_date)
+
+        result.close()
 
     # update the dataset table to reflect the fact that the code table was refreshed
     conn.execute(update_dataset, updated=datetime.now(), dataset=dataset)
@@ -198,29 +209,36 @@ def update_dataset_data(engine, dataset, api_key):
 
     # fetch the first code's data to create the data frame
     data = Quandl.get(code_table['API Code'].iloc[0], rows=1, authtoken=api_key)
+    data = data.reset_index()
     data['Code'] = code_table['Code'].iloc[0]
-    data['Date'] = data['Date'].convert_objects(convert_dates='coerce')
     data = data.iloc[0:0]
 
     # iterate over each code and append the returned data
-    for row in code_table.iterrows():
+    counter = 0
+    for index, row in code_table.iterrows():
         if row['Last Updated'] == datetime(1900, 1, 1):
             # this is a new code so we need to pull all historical data
+            print('Loading historical data for {0}...'.format(row['API Code']))
             code_data = Quandl.get(row['API Code'], authtoken=api_key)
         else:
             # incremental update from the current end date for the code
             code_data = Quandl.get(row['API Code'], trim_start=str(row['End Date']), authtoken=api_key)
 
         # concat new data to the total set of new records
+        code_data = code_data.reset_index()
         code_data['Code'] = row['Code']
-        code_data['Date'] = code_data['Date'].convert_objects(convert_dates='coerce')
         data = pd.concat([data, code_data])
 
         # update the code table
-        min_date = min(code_data['Date'])
-        max_date = max(code_data['Date'])
+        min_date = code_data['Date'].min().to_datetime()
+        max_date = code_data['Date'].max().to_datetime()
         current_date = datetime.now()
         conn.execute(update_code, start=min_date, end=max_date, updated=current_date, code=row['Code'])
+
+        counter += 1
+        if counter % 100 == 0:
+            print('Sleeping for one minute to avoid hitting API call limits...')
+            time.sleep(60)
 
     # move the code column to the beginning
     columns = data.columns.tolist()
@@ -236,8 +254,8 @@ def main():
     ex_init_database = False
     ex_update_database = False
 
-    directory = 'C:\\Users\\John\\Documents\\Data\\Alpha\\'
-    db_connection = 'sqlite:///C:\\Users\\John\\Documents\\Data\\Alpha\\alpha.sqlite'
+    directory = 'C:\\Users\\jdwittenauer\\Documents\\Data\\Alpha\\'
+    db_connection = 'sqlite:///C:\\Users\\jdwittenauer\\Documents\\Data\\Alpha\\alpha.db'
     api_key = 'SkQK_ZNrZn4cjfXxjJmb'
 
     engine = create_engine(db_connection)
