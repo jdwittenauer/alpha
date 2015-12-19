@@ -8,6 +8,11 @@ from sqlalchemy import sql
 from zipfile import ZipFile
 
 
+# TODO - trim code strings
+# TODO - save code description fields
+# TODO - add option to group data retrieval by first code section
+
+
 def load_sql_data(engine, table=None, query=None, index=None, date_columns=None):
     """
     Retrieves data from a SQL database and loads the data into a data frame.
@@ -77,6 +82,17 @@ def create_dataset_table(engine):
     print('Dataset table creation complete.')
 
 
+def create_stock_data_table(engine):
+    """
+    Creates and populates a table with general company information.
+    """
+    file_location = r'https://s3.amazonaws.com/quandl-static-content/Ticker+CSV%27s/secwiki_tickers.csv'
+    stock_data_table = pd.read_csv(file_location)
+    save_sql_data(engine, stock_data_table, 'STOCK_INFO', exists='replace', index=False)
+
+    print('Stock data table creation complete.')
+
+
 def create_dataset_code_table(engine, directory, dataset, api_key):
     """
     Map the list of codes contained in a data set to a data frame to be used
@@ -101,6 +117,7 @@ def create_dataset_code_table(engine, directory, dataset, api_key):
     code_table['End Date'] = datetime(1900, 1, 1)
     code_table['Last Updated'] = datetime(1900, 1, 1)
     code_table = code_table[['Code', 'API Code', 'Start Date', 'End Date', 'Last Updated']]
+    code_table = code_table.sort_values(by='Code')
 
     save_sql_data(engine, code_table, dataset + '_CODES', exists='replace', index=False)
 
@@ -132,7 +149,6 @@ def load_historical_data(engine, dataset, api_key):
     # iterate over each code and append the returned data
     counter = 0
     for index, row in code_table.iterrows():
-        print('Loading historical data for {0}...'.format(row['API Code']))
         code_data = Quandl.get(row['API Code'], authtoken=api_key)
         code_data = code_data.reset_index()
         code_data['Code'] = row['Code']
@@ -218,7 +234,7 @@ def update_dataset_data(engine, dataset, api_key):
     for index, row in code_table.iterrows():
         if row['Last Updated'] == datetime(1900, 1, 1):
             # this is a new code so we need to pull all historical data
-            print('Loading historical data for {0}...'.format(row['API Code']))
+            print('Loading historical data for new company {0}...'.format(row['API Code']))
             code_data = Quandl.get(row['API Code'], authtoken=api_key)
         else:
             # incremental update from the current end date for the code
@@ -264,12 +280,14 @@ def main():
 
     if ex_init_database:
         create_dataset_table(engine)
+        create_stock_data_table(engine)
         dataset_table = load_sql_data(engine, 'DATASETS', date_columns=['Last Updated'])
         for row in dataset_table.iterrows():
             create_dataset_code_table(engine, directory, row['Dataset'], api_key)
             load_historical_data(engine, row['Dataset'], api_key)
 
     if ex_update_database:
+        create_stock_data_table(engine)
         dataset_table = load_sql_data(engine, 'DATASETS', date_columns=['Last Updated'])
         for row in dataset_table.iterrows():
             update_dataset_codes(engine, directory, row['Dataset'], api_key)
