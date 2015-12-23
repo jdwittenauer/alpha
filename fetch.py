@@ -8,9 +8,8 @@ from sqlalchemy import sql
 from zipfile import ZipFile
 
 
-# TODO - trim code strings
-# TODO - save code description fields
-# TODO - add option to group data retrieval by first code section
+# TODO - add option to group data retrieval by related code sets
+# TODO - modify code update routine to pull entire existing table in memory at once
 
 
 def load_sql_data(engine, table=None, query=None, index=None, date_columns=None):
@@ -65,15 +64,22 @@ def get_dataset_codes(directory, dataset, api_key):
     # convert to a list
     code_list = codes.iloc[:, 0].tolist()
 
+    # strip out excess white space characters
+    code_list = map(lambda x: x.strip(), code_list)
+
+    # pull out the descriptions as well
+    description_list = codes.iloc[:, 1].tolist()
+    description_list = map(lambda x: unicode(x, encoding='utf-8', errors='ignore'), description_list)
+
     print('Code retrieval successful.')
-    return code_list
+    return code_list, description_list
 
 
 def create_dataset_table(engine):
     """
     Creates a table to track the names and status of data sets being fetched online.
     """
-    dataset_list = ['WIKI', 'RAYMOND', 'FRED', 'FED', 'USTREASURY', 'DOE']
+    dataset_list = ['WIKI', 'RAYMOND', 'FRED', 'FED', 'DOE']
     dataset_table = pd.DataFrame(dataset_list, columns=['Dataset'])
     dataset_table['Last Updated'] = datetime(1900, 1, 1)
 
@@ -104,7 +110,7 @@ def create_dataset_code_table(engine, directory, dataset, api_key):
     conn = engine.connect()
 
     # retrieve the most updated list from the remote server
-    code_list = get_dataset_codes(directory, dataset, api_key)
+    code_list, description_list = get_dataset_codes(directory, dataset, api_key)
 
     # strip off the data set name
     code_offset = len(dataset) + 1
@@ -113,10 +119,11 @@ def create_dataset_code_table(engine, directory, dataset, api_key):
     # create a new frame with the dataset, codes, and placeholder columns for metadata
     code_table = pd.DataFrame(code_list_stripped, columns=['Code'])
     code_table['API Code'] = code_list
+    code_table['Description'] = description_list
     code_table['Start Date'] = datetime(1900, 1, 1)
     code_table['End Date'] = datetime(1900, 1, 1)
     code_table['Last Updated'] = datetime(1900, 1, 1)
-    code_table = code_table[['Code', 'API Code', 'Start Date', 'End Date', 'Last Updated']]
+    code_table = code_table[['Code', 'API Code', 'Description', 'Start Date', 'End Date', 'Last Updated']]
     code_table = code_table.sort_values(by='Code')
 
     save_sql_data(engine, code_table, dataset + '_CODES', exists='replace', index=False)
@@ -124,10 +131,10 @@ def create_dataset_code_table(engine, directory, dataset, api_key):
     # update the dataset table to show that the code table was created
     conn.execute(update_dataset, updated=datetime.now(), dataset=dataset)
 
-    print('Code table creation complete.')
+    print(dataset + ' code table creation complete.')
 
 
-def load_historical_data(engine, dataset, api_key):
+def load_historical_data(engine, dataset, api_key, mode='normal'):
     """
     Creates a new data table for the provided data set and loads historical data for each code into the table.
     """
@@ -140,9 +147,13 @@ def load_historical_data(engine, dataset, api_key):
     # retrieve the current code table
     code_table = load_sql_data(engine, dataset + '_CODES', date_columns=['Start Date', 'End Date', 'Last Updated'])
 
+    # TESTING ONLY
+    code_table = code_table.iloc[:10, :]
+
     # fetch the first code's data to create the data frame
     data = Quandl.get(code_table['API Code'].iloc[0], rows=1, authtoken=api_key)
     data = data.reset_index()
+    data = data.rename(columns=lambda x: x[0] + x[1:].lower())
     data['Code'] = code_table['Code'].iloc[0]
     data = data.iloc[0:0]
 
@@ -151,6 +162,7 @@ def load_historical_data(engine, dataset, api_key):
     for index, row in code_table.iterrows():
         code_data = Quandl.get(row['API Code'], authtoken=api_key)
         code_data = code_data.reset_index()
+        code_data = code_data.rename(columns=lambda x: x[0] + x[1:].lower())
         code_data['Code'] = row['Code']
         data = pd.concat([data, code_data])
 
@@ -172,7 +184,7 @@ def load_historical_data(engine, dataset, api_key):
 
     save_sql_data(engine, data, dataset, exists='replace', index=False)
 
-    print('Historical data loaded successfully.')
+    print(dataset + ' historical data loaded successfully.')
 
 
 def update_dataset_codes(engine, directory, dataset, api_key):
@@ -180,7 +192,9 @@ def update_dataset_codes(engine, directory, dataset, api_key):
     Updates the list of codes for a data set and pulls in historical data for new codes.
     """
     select_code = sql.text('SELECT 1 FROM ' + dataset + '_CODES WHERE [Code] = :code')
-    insert_code = sql.text('INSERT INTO ' + dataset + '_CODES VALUES (:code, :api_code, :start, :end, :updated)')
+    insert_code = sql.text(
+        'INSERT INTO ' + dataset +
+        '_CODES VALUES (:code, :api_code, :description, :start, :end, :updated)')
     update_dataset = sql.text(
         'UPDATE DATASETS '
         'SET [Last Updated] = :updated '
@@ -188,26 +202,28 @@ def update_dataset_codes(engine, directory, dataset, api_key):
     conn = engine.connect()
 
     # retrieve the most updated list from the remote server
-    code_list = get_dataset_codes(directory, dataset, api_key)
+    code_list, description_list = get_dataset_codes(directory, dataset, api_key)
     code_offset = len(dataset) + 1
 
     # iterate over each code and check its status in the database
-    for api_code in code_list:
+    for index, api_code in enumerate(code_list):
         code = api_code[code_offset:]
         result = conn.execute(select_code, code=code)
         row = result.fetchone()
 
         # if there was no result then the code is new and must be inserted
         if row is None:
+            description = description_list[index]
             init_date = datetime(1900, 1, 1)
-            conn.execute(insert_code, code=code, api_code=api_code, start=init_date, end=init_date, updated=init_date)
+            conn.execute(insert_code, code=code, api_code=api_code, description=description,
+                         start=init_date, end=init_date, updated=init_date)
 
         result.close()
 
     # update the dataset table to reflect the fact that the code table was refreshed
     conn.execute(update_dataset, updated=datetime.now(), dataset=dataset)
 
-    print('Code table updated successfully.')
+    print(dataset + ' code table updated successfully.')
 
 
 def update_dataset_data(engine, dataset, api_key):
@@ -223,9 +239,13 @@ def update_dataset_data(engine, dataset, api_key):
     # retrieve the current code table
     code_table = load_sql_data(engine, dataset + '_CODES', date_columns=['Start Date', 'End Date', 'Last Updated'])
 
+    # TESTING ONLY
+    code_table = code_table.iloc[:10, :]
+
     # fetch the first code's data to create the data frame
     data = Quandl.get(code_table['API Code'].iloc[0], rows=1, authtoken=api_key)
     data = data.reset_index()
+    data = data.rename(columns=lambda x: x[0] + x[1:].lower())
     data['Code'] = code_table['Code'].iloc[0]
     data = data.iloc[0:0]
 
@@ -242,6 +262,7 @@ def update_dataset_data(engine, dataset, api_key):
 
         # concat new data to the total set of new records
         code_data = code_data.reset_index()
+        code_data = code_data.rename(columns=lambda x: x[0] + x[1:].lower())
         code_data['Code'] = row['Code']
         data = pd.concat([data, code_data])
 
@@ -263,12 +284,12 @@ def update_dataset_data(engine, dataset, api_key):
 
     save_sql_data(engine, data, dataset, exists='append', index=False)
 
-    print('Code data updated successfully.')
+    print(dataset + ' code data updated successfully.')
 
 
 def main():
     ex_init_database = False
-    ex_update_database = False
+    ex_update_database = True
 
     directory = 'C:\\Users\\jdwittenauer\\Documents\\Data\\Alpha\\'
     db_connection = 'sqlite:///C:\\Users\\jdwittenauer\\Documents\\Data\\Alpha\\alpha.db'
@@ -282,14 +303,14 @@ def main():
         create_dataset_table(engine)
         create_stock_data_table(engine)
         dataset_table = load_sql_data(engine, 'DATASETS', date_columns=['Last Updated'])
-        for row in dataset_table.iterrows():
+        for index, row in dataset_table.iterrows():
             create_dataset_code_table(engine, directory, row['Dataset'], api_key)
             load_historical_data(engine, row['Dataset'], api_key)
 
     if ex_update_database:
         create_stock_data_table(engine)
         dataset_table = load_sql_data(engine, 'DATASETS', date_columns=['Last Updated'])
-        for row in dataset_table.iterrows():
+        for index, row in dataset_table.iterrows():
             update_dataset_codes(engine, directory, row['Dataset'], api_key)
             update_dataset_data(engine, row['Dataset'], api_key)
 
