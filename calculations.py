@@ -66,22 +66,22 @@ def calc_preferred_value(total_shares_outstanding, basic_shares_outstanding, pri
 
 def calc_excess_cash(total_cash, current_liabilities, current_assets):
     """
-    Excess cash is a measure of the company's cash on hand that exceeds the delta between a company's current
-    assets and current liabilities.
+    Excess cash is a measure of the company's cash on hand that exceeds the cash required for a company to
+    meet its current liabilities.
 
     This calculation is part of Greenblat's magic formula.
     """
     return total_cash - max(current_liabilities - current_assets, 0)
 
 
-def calc_enterprise_value(market_capitalization, debt, preferred_shares_value, excess_cash):
+def calc_enterprise_value(market_capitalization, debt, preferred_value, excess_cash):
     """
     Enterprise value calculates and adjusted market capitalization for a company that penalizes outstanding
     debt and preferred shares but provides a bonus for excess cash on hand.
 
     This calculation is part of Greenblat's magic formula.
     """
-    return max(market_capitalization + debt + preferred_shares_value - excess_cash, 1)
+    return max(market_capitalization + debt + preferred_value - excess_cash, 1)
 
 
 def calc_earnings_yield(earnings, enterprise_value):
@@ -94,14 +94,15 @@ def calc_earnings_yield(earnings, enterprise_value):
     return float(earnings) / float(enterprise_value)
 
 
-def calc_net_fixed_assets(total_assets, current_assets, goodwill, intangible_assets, other_long_term_assets):
+def calc_net_fixed_assets(plant_performance_equipment, accumulated_depreciation,
+                          equity_investment, other_long_term_assets):
     """
-    Net fixed assets is the value of all tangible assets (land, buildings, equipment etc.) less
+    Net fixed assets is the value of all fixed assets (land, buildings, equipment etc.) less
     accumulated depreciation.
 
     This calculation is part of Greenblat's magic formula.
     """
-    return total_assets - current_assets - goodwill - intangible_assets - other_long_term_assets
+    return (plant_performance_equipment - accumulated_depreciation) + equity_investment + other_long_term_assets
 
 
 def calc_working_capital(current_assets, current_liabilities, short_term_debt, excess_cash):
@@ -114,25 +115,25 @@ def calc_working_capital(current_assets, current_liabilities, short_term_debt, e
     return max(current_assets - (current_liabilities - short_term_debt) - excess_cash, 0)
 
 
-def calc_invested_capital(stockholder_equity, debt):
+def calc_invested_capital(stockholder_equity, excess_cash, debt):
     """
     Invested capital is calculated as total assets less total liabilites excluding debt.
     """
-    return stockholder_equity + debt
+    return max(stockholder_equity - excess_cash + debt, 1)
 
 
-def calc_return_on_equity(net_income, stockholder_equity):
+def calc_return_on_equity(earnings, stockholder_equity):
     """
     Return on equity is the ratio of net income generated per dollar of stockholder equity.
     """
-    return float(net_income) / float(stockholder_equity)
+    return float(earnings) / float(stockholder_equity)
 
 
-def calc_return_on_assets(net_income, total_assets):
+def calc_return_on_assets(earnings, total_assets):
     """
     Return on assets is the ratio of net income generated per dollar of total assets.
     """
-    return float(net_income) / float(total_assets)
+    return float(earnings) / float(total_assets)
 
 
 def calc_return_on_capital(earnings, net_fixed_assets, working_capital):
@@ -402,19 +403,20 @@ def main():
     earnings_yield = calc_earnings_yield(earnings, enterprise_value)
     print('Earnings Yield = ' + str(earnings_yield))
 
-    net_fixed_assets = calc_net_fixed_assets(total_assets, current_assets, goodwill, intangible_assets, other_long_term_assets)
+    net_fixed_assets = calc_net_fixed_assets(plant_performance_equipment, accumulated_depreciation,
+                                             equity_investment, other_long_term_assets)
     print('Net Fixed Assets = ' + str(net_fixed_assets))
 
     working_capital = calc_working_capital(current_assets, current_liabilities, short_term_debt, excess_cash)
     print('Working Capital = ' + str(working_capital))
 
-    invested_capital = calc_invested_capital(stockholder_equity, debt)
+    invested_capital = calc_invested_capital(stockholder_equity, excess_cash, debt)
     print('Invested Capital = ' + str(invested_capital))
 
-    return_on_equity = calc_return_on_equity(net_income, stockholder_equity)
+    return_on_equity = calc_return_on_equity(earnings, stockholder_equity)
     print('Return On Equity = ' + str(return_on_equity))
 
-    return_on_assets = calc_return_on_assets(net_income, total_assets)
+    return_on_assets = calc_return_on_assets(earnings, total_assets)
     print('Return On Assets = ' + str(return_on_assets))
 
     return_on_capital = calc_return_on_capital(earnings, net_fixed_assets, working_capital)
@@ -465,7 +467,8 @@ def main():
     debt_to_equity_ratio = calc_debt_to_equity_ratio(total_liabilities, stockholder_equity)
     print('Debt To Equity Ratio = ' + str(debt_to_equity_ratio))
 
-    current_liability_coverage_ratio = calc_current_liability_coverage_ratio(operating_cash_flow, dividends_paid, current_liabilities)
+    current_liability_coverage_ratio = calc_current_liability_coverage_ratio(operating_cash_flow, dividends_paid,
+                                                                             current_liabilities)
     print('Current Liability Coverage Ratio = ' + str(current_liability_coverage_ratio))
 
     operating_cash_flow_ratio = calc_operating_cash_flow_ratio(operating_cash_flow, revenue)
@@ -473,7 +476,8 @@ def main():
 
     cash_investing_inflows = calc_cash_investing_inflows(sales_of_investments, other_investing_activities)
     cash_financing_inflows = calc_cash_financing_inflows(debt_issued, common_stock_issued)
-    cash_generating_power_ratio = calc_cash_generating_power_ratio(operating_cash_flow, cash_investing_inflows, cash_financing_inflows)
+    cash_generating_power_ratio = calc_cash_generating_power_ratio(operating_cash_flow, cash_investing_inflows,
+                                                                   cash_financing_inflows)
     print('Cash Generating Power Ratio = ' + str(cash_generating_power_ratio))
 
     bond_equity_earnings_yield_ratio = calc_bond_equity_earnings_yield_ratio(ten_year_treasury_yield, earnings_yield)
